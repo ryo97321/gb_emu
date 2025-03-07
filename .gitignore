@@ -1,2 +1,3 @@
 .git
-hello-world.gb
+gb_emu/hello-world.gb
+gb_emu/target/
