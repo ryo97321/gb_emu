@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, Read};
 
 fn main() -> io::Result<()> {
-    let rom_path = "hello-world.gb";
+    let rom_path = "pokemon_red.gb";
 
     let mut file = File::open(rom_path)?;
     let mut buffer = vec![0; 0x150];
