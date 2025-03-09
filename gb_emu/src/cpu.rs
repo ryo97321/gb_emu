@@ -70,6 +70,22 @@ impl CPU {
                 let value = self.fetch();
                 self.regs.c = value;
             }
+            0x16 => { // LD D, n (Dレジスタにnをロード)
+                let value = self.fetch();
+                self.regs.d = value;
+            }
+            0x1E => { // LD E, n (Eレジスタにnをロード)
+                let value = self.fetch();
+                self.regs.e = value;
+            }
+            0x26 => { // LD H, n (Hレジスタにnをロード)
+                let value = self.fetch();
+                self.regs.h = value;
+            }
+            0x2E => { // LD L, n (Lレジスタにnをロード)
+                let value = self.fetch();
+                self.regs.l = value;
+            }
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
@@ -94,6 +110,37 @@ impl CPU {
                 let high = self.fetch();
                 self.regs.d = high;
                 self.regs.e = low;
+            }
+            0x21 => { // LD HL, nn (HLレジスタにnnをロード)
+                let low = self.fetch();
+                let high = self.fetch();
+                self.regs.h = high;
+                self.regs.l = low;
+            }
+            0x31 => { // LD SP, nn (SPレジスタにnnをロード)
+                let low = self.fetch();
+                let high = self.fetch();
+                self.regs.sp = u16::from_le_bytes([low, high]);
+            }
+            0xE2 => { // LDH (C), A
+                let addr = 0xFF00 | (self.regs.c as u16);
+                self.mmu.write_byte(addr, self.regs.a);
+            }
+            0xE0 => { // LDH (n), A
+                let offset = self.fetch();
+                let addr = 0xFF00 | (offset as u16); // 0xFF00 + n
+                self.mmu.write_byte(addr, self.regs.a);
+            }
+            0xEA => { // LDH (nn), A
+                let low = self.fetch();
+                let high = self.fetch();
+                let addr = u16::from_le_bytes([low, high]);
+                self.mmu.write_byte(addr, self.regs.a);
+            }
+            0xF2 => { // LDH A, (C)
+                let addr = 0xFF00 | (self.regs.c as u16);
+                let value = self.mmu.read_byte(addr);
+                self.regs.a = value;
             }
             _ => {
                 eprintln!("未実装の命令: 0x{:02X}", opcode);
