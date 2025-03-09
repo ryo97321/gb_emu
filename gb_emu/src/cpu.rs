@@ -83,6 +83,18 @@ impl CPU {
                 let value = self.fetch();
                 self.regs.a -= value;
             }
+            0x01 => { // LD BC, nn (BCレジスタにnnをロード)
+                let low = self.fetch();
+                let high = self.fetch();
+                self.regs.b = high;
+                self.regs.c = low;
+            }
+            0x11 => { // LD DE, nn (DEレジスタにnnをロード)
+                let low = self.fetch();
+                let high = self.fetch();
+                self.regs.d = high;
+                self.regs.e = low;
+            }
             _ => {
                 eprintln!("未実装の命令: 0x{:02X}", opcode);
             }
