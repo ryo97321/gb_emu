@@ -1,3 +1,33 @@
+*add a, r8
+10000|xxx|
+
+*add a,b
+10000|000|
+0x80
+
+*add a,c
+0x81
+
+*add a,d
+0x82
+
+*add a,e
+0x83
+
+*add a,h
+0x84
+
+*add a,l
+0x85
+
+*add a, (hl)
+0x86
+
+*add a,a
+0x87
+
+---------
+
 ld r16, n
 7,6,5,4,3,2,1,0
 00|xx|0001

@@ -58,6 +58,32 @@ impl CPU {
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
+            0x80 => { // ADD A, B
+                self.regs.a += self.regs.b;
+            }
+            0x81 => { // ADD A, C
+                self.regs.a += self.regs.c;
+            }
+            0x82 => { // ADD A, D
+                self.regs.a += self.regs.d;
+            }
+            0x83 => { // ADD A, E
+                self.regs.a += self.regs.e;
+            }
+            0x84 => { // ADD A, H
+                self.regs.a += self.regs.h;
+            }
+            0x85 => { // ADD A, L
+                self.regs.a += self.regs.l;
+            }
+            0x86 => { // ADD A, (HL)
+                let address = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                let value = self.mmu.read_byte(address);
+                self.regs.a += value;
+            }
+            0x87 => { // ADD A, A
+                self.regs.a += self.regs.a;
+            }
             0x3E => { // LD A, n (Aレジスタにnをロード)
                 let value = self.fetch();
                 self.regs.a = value;
@@ -91,11 +117,11 @@ impl CPU {
                 let high = self.fetch();
                 self.regs.pc = ((high as u16) << 8) | (low as u16);
             }
-            0x80 => { // ADD A, n (Aレジスタにnを加算)
+            0xC6 => { // ADD A, n (Aレジスタにnを加算)
                 let value = self.fetch();
                 self.regs.a += value;
             }
-            0x90 => { // SUB A, n (Aレジスタからnを減算)
+            0xD6 => { // SUB A, n (Aレジスタからnを減算)
                 let value = self.fetch();
                 self.regs.a -= value;
             }
