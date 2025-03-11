@@ -35,6 +35,23 @@ adc a, r8
 10001|000|
 0x88
 
+adc a, c
+0x89
+
+adc a, d
+0x8A
+
+adc a, e
+0x8B
+
+adc a, h
+0x8C
+
+adc a, l
+0x8D
+
+
+----------------
 
 ld r16, n
 7,6,5,4,3,2,1,0
