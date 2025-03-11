@@ -4,7 +4,7 @@ use crate::mmu::MMU;
 #[derive(Debug)]
 pub struct Registers {
     pub a: u8, // アキュムレータ
-    pub f: u8, // フラグレジスタ(Z, N, H, C)
+    pub f: u8, // フラグレジスタ(0bZNHC0000)
     pub b: u8,
     pub c: u8,
     pub d: u8,
@@ -83,6 +83,26 @@ impl CPU {
             }
             0x87 => { // ADD A, A
                 self.regs.a += self.regs.a;
+            }
+            0x88 => { // ADC A, B
+                let a = self.regs.a;
+                let b = self.regs.b;
+                let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
+
+                let result = a.wrapping_add(b).wrapping_add(carry);
+
+                self.regs.f = 0x00;
+                if result == 0 {
+                    self.regs.f |= 0x80; // Z
+                }
+                if ((a & 0x0F) + (b & 0x0F) + carry) > 0x0F {
+                    self.regs.f |= 0x20; // H
+                }
+                if ((a as u16) + (b as u16) + (carry as u16)) > 0xFF {
+                    self.regs.f |= 0x10; // C
+                }
+
+                self.regs.a = result;
             }
             0x3E => { // LD A, n (Aレジスタにnをロード)
                 let value = self.fetch();
