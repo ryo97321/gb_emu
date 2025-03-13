@@ -124,6 +124,86 @@ impl CPU {
 
                 self.regs.a = result;
             }
+            0x8A => { // ADC A, D
+                let a = self.regs.a;
+                let d = self.regs.d;
+                let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
+
+                let result = a.wrapping_add(d).wrapping_add(carry);
+
+                self.regs.f = 0x00;
+
+                if result == 0 {
+                    self.regs.f |= 0x80; // Z
+                }
+                if ((a & 0x0F) + (d & 0x0F) + carry) > 0x0F {
+                    self.regs.f |= 0x20; // H
+                }
+                if ((a as u16) + (d as u16) + (carry as u16)) > 0xFF {
+                    self.regs.f |= 0x10; // C
+                }
+
+                self.regs.a = result;
+            }
+            0x8B => { // ADC A, E
+                let a = self.regs.a;
+                let e = self.regs.e;
+                let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
+
+                let result = a.wrapping_add(e).wrapping_add(carry);
+
+                self.regs.f = 0x00;
+
+                if result == 0 {
+                    self.regs.f |= 0x80; // Z
+                }
+                if ((a & 0x0F) + (e & 0x0F) + carry) > 0x0F {
+                    self.regs.f |= 0x20; // H
+                }
+                if ((a as u16) + (e as u16) + (carry as u16)) > 0xFF {
+                    self.regs.f |= 0x10; // C
+                }
+
+                self.regs.a = result;
+            }
+            0x8C => { // ADC A, H
+                let a = self.regs.a;
+                let h = self.regs.h;
+                let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
+
+                let result = a.wrapping_add(h).wrapping_add(carry);
+
+                if result == 0 {
+                    self.regs.f |= 0x80; // Z
+                }
+                if ((a & 0x0F) + (h & 0x0F) + carry) > 0x0F {
+                    self.regs.f |= 0x20; // H
+                }
+                if ((a as u16) + (h as u16) + (carry as u16)) > 0xFF {
+                    self.regs.f |= 0x10; // C
+                }
+
+                self.regs.a = result;
+            }
+            0x8D => { // ADC A, L
+                let a = self.regs.a;
+                let l = self.regs.l;
+                let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
+
+                let result = a.wrapping_add(l).wrapping_add(carry);
+
+                if result == 0 {
+                    self.regs.f |= 0x80; // Z
+                }
+                if ((a & 0x0F) + (l & 0x0F) + carry) > 0x0F {
+                    self.regs.f |= 0x20; // H
+                }
+                if ((a as u16) + (l as u16) + (carry as u16)) > 0xFF {
+                    self.regs.f |= 0x10; // C
+                }
+
+                self.regs.a = result;
+            }
             0x3E => { // LD A, n (Aレジスタにnをロード)
                 let value = self.fetch();
                 self.regs.a = value;
