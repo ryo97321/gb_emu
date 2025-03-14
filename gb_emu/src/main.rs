@@ -11,8 +11,8 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // ADC A, L
-    rom_data[0x0101] = 0x8D;
+    // ADC A, H
+    rom_data[0x0101] = 0x8C;
 
     // JP 0x0100
     rom_data[0x0102] = 0xC3;
@@ -25,7 +25,7 @@ fn main() {
 
     cpu.regs.f = 0x10;
     cpu.regs.a = 0x0F;
-    cpu.regs.l = 0x0F;
+    cpu.regs.h = 0x0F;
 
     // Exec ROM
     let n_op = 3; // 命令の数
