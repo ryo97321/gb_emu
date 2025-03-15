@@ -11,26 +11,21 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // LD [BC], A
-    rom_data[0x0101] = 0x02;
-
-    // LD [DE], A
-    rom_data[0x0102] = 0x12;
+    // LD [HL+], A
+    rom_data[0x0101] = 0x22;
 
     // JP 0x0100
-    rom_data[0x0103] = 0xC3;
-    rom_data[0x0104] = 0x00;
-    rom_data[0x0105] = 0x01;
+    rom_data[0x0102] = 0xC3;
+    rom_data[0x0103] = 0x00;
+    rom_data[0x0104] = 0x01;
 
     // Make MMU & CPU
     let mmu = MMU::new(rom_data);
     let mut cpu = CPU::new(mmu);
 
     cpu.regs.a = 0x55;
-    cpu.regs.b = 0xFF;
-    cpu.regs.c = 0x81;
-    cpu.regs.d = 0xFF;
-    cpu.regs.e = 0x83;
+    cpu.regs.h = 0xFF;
+    cpu.regs.l = 0xFF;
 
     // Exec ROM
     let n_op = 4; // 命令の数
@@ -41,7 +36,7 @@ fn main() {
         println!("0xC000: 0x{:04X}", cpu.mmu.read_byte(0xC000));
         println!("0xFF81: 0x{:04X}", cpu.mmu.read_byte(0xFF81));
         println!("0xFF83: 0x{:04X}", cpu.mmu.read_byte(0xFF83));
-        println!("0xFF85: 0x{:02X}", cpu.mmu.read_byte(0xFF85));
+        println!("0xFFFF: 0x{:02X}", cpu.mmu.read_byte(0xFFFF));
         println!("---");
     }
 }

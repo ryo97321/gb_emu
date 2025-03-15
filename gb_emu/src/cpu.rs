@@ -89,6 +89,13 @@ impl CPU {
             0x00 => { /* Nothing */ }
             0x02 => self.ld_r16mem(self.regs.b, self.regs.c), // LD [BC], A
             0x12 => self.ld_r16mem(self.regs.d, self.regs.e), // LD [DE], A
+            0x22 => { // LD [HL+], A
+                let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                self.mmu.write_byte(addr, self.regs.a);
+                let hl = addr.wrapping_add(1);
+                self.regs.h = (hl >> 8) as u8;
+                self.regs.l = (hl & 0xFF) as u8;
+            }
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D
