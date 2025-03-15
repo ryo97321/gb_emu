@@ -55,6 +55,11 @@ impl CPU {
         opcode
     }
 
+    fn ld_r16mem(&mut self, r16_high: u8, r16_low: u8) {
+        let addr = ((r16_high as u16) << 8) | (r16_low as u16);
+        self.mmu.write_byte(addr, self.regs.a);
+    }
+
     fn add_a(&mut self, r8_value: u8) {
         self.regs.a += r8_value;
     }
@@ -82,6 +87,8 @@ impl CPU {
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
+            0x02 => self.ld_r16mem(self.regs.b, self.regs.c), // LD [BC], A
+            0x12 => self.ld_r16mem(self.regs.d, self.regs.e), // LD [DE], A
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D
