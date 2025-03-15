@@ -55,7 +55,11 @@ impl CPU {
         opcode
     }
 
-    fn adc_a_r8(&mut self, r8_value: u8) {
+    fn add_a(&mut self, r8_value: u8) {
+        self.regs.a += r8_value;
+    }
+
+    fn adc_a(&mut self, r8_value: u8) {
         let a = self.regs.a;
         let carry = if self.regs.f & 0x10 != 0 { 1 } else { 0 };
 
@@ -78,98 +82,63 @@ impl CPU {
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
-            0x80 => { // ADD A, B
-                self.regs.a += self.regs.b;
-            }
-            0x81 => { // ADD A, C
-                self.regs.a += self.regs.c;
-            }
-            0x82 => { // ADD A, D
-                self.regs.a += self.regs.d;
-            }
-            0x83 => { // ADD A, E
-                self.regs.a += self.regs.e;
-            }
-            0x84 => { // ADD A, H
-                self.regs.a += self.regs.h;
-            }
-            0x85 => { // ADD A, L
-                self.regs.a += self.regs.l;
-            }
+            0x80 => self.add_a(self.regs.b), // ADD A, B
+            0x81 => self.add_a(self.regs.c), // ADD A, C
+            0x82 => self.add_a(self.regs.d), // ADD A, D
+            0x83 => self.add_a(self.regs.e), // ADD A, E
+            0x84 => self.add_a(self.regs.h), // ADD A, H
+            0x85 => self.add_a(self.regs.l), // ADD A, L
             0x86 => { // ADD A, (HL)
                 let address = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
                 let value = self.mmu.read_byte(address);
                 self.regs.a += value;
             }
-            0x87 => { // ADD A, A
-                self.regs.a += self.regs.a;
-            }
-            0x88 => self.adc_a_r8(self.regs.b), // ADC A, B
-            0x89 => self.adc_a_r8(self.regs.c), // ADC A, C
-            0x8A => self.adc_a_r8(self.regs.d), // ADC A, D
-            0x8B => self.adc_a_r8(self.regs.e), // ADC A, E
-            0x8C => self.adc_a_r8(self.regs.h), // ADC A, H
-            0x8D => self.adc_a_r8(self.regs.l), // ADC A, L
-            0x3E => { // LD A, n (Aレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.a = value;
-            }
-            0x06 => { // LD B, n (Bレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.b = value;
-            }
-            0x0E => { // LD C, n (Cレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.c = value;
-            }
-            0x16 => { // LD D, n (Dレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.d = value;
-            }
-            0x1E => { // LD E, n (Eレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.e = value;
-            }
-            0x26 => { // LD H, n (Hレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.h = value;
-            }
-            0x2E => { // LD L, n (Lレジスタにnをロード)
-                let value = self.fetch();
-                self.regs.l = value;
-            }
+            0x87 => self.add_a(self.regs.a), // ADD A, A
+            0x88 => self.adc_a(self.regs.b), // ADC A, B
+            0x89 => self.adc_a(self.regs.c), // ADC A, C
+            0x8A => self.adc_a(self.regs.d), // ADC A, D
+            0x8B => self.adc_a(self.regs.e), // ADC A, E
+            0x8C => self.adc_a(self.regs.h), // ADC A, H
+            0x8D => self.adc_a(self.regs.l), // ADC A, L
+            0x3E => { let value = self.fetch(); self.regs.a = value; } // LD A, n
+            0x06 => { let value = self.fetch(); self.regs.b = value; } // LD B, n
+            0x0E => { let value = self.fetch(); self.regs.c = value; } // LD C, n
+            0x16 => { let value = self.fetch(); self.regs.d = value; } // LD D, n
+            0x1E => { let value = self.fetch(); self.regs.e = value; } // LD E, n
+            0x26 => { let value = self.fetch(); self.regs.h = value; } // LD H, n
+            0x2E => { let value = self.fetch(); self.regs.l = value; } // LD L, n
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
                 self.regs.pc = ((high as u16) << 8) | (low as u16);
             }
-            0xC6 => { // ADD A, n (Aレジスタにnを加算)
+            0xC6 => { // ADD A, n
                 let value = self.fetch();
                 self.regs.a += value;
             }
-            0xD6 => { // SUB A, n (Aレジスタからnを減算)
+            0xD6 => { // SUB A, n
                 let value = self.fetch();
                 self.regs.a -= value;
             }
-            0x01 => { // LD BC, nn (BCレジスタにnnをロード)
+            0x01 => { // LD BC, nn
                 let low = self.fetch();
                 let high = self.fetch();
                 self.regs.b = high;
                 self.regs.c = low;
             }
-            0x11 => { // LD DE, nn (DEレジスタにnnをロード)
+            0x11 => { // LD DE, nn
                 let low = self.fetch();
                 let high = self.fetch();
                 self.regs.d = high;
                 self.regs.e = low;
             }
-            0x21 => { // LD HL, nn (HLレジスタにnnをロード)
+            0x21 => { // LD HL, nn
                 let low = self.fetch();
                 let high = self.fetch();
                 self.regs.h = high;
                 self.regs.l = low;
             }
-            0x31 => { // LD SP, nn (SPレジスタにnnをロード)
+            0x31 => { // LD SP, nn
                 let low = self.fetch();
                 let high = self.fetch();
                 self.regs.sp = u16::from_le_bytes([low, high]);
