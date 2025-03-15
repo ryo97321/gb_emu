@@ -60,6 +60,12 @@ impl CPU {
         self.mmu.write_byte(addr, self.regs.a);
     }
 
+    fn ld_a_r16mem(&mut self, r16_high: u8, r16_low: u8) {
+        let addr = ((r16_high as u16) << 8) | (r16_low as u16);
+        let value = self.mmu.read_byte(addr);
+        self.regs.a = value;
+    }
+
     fn add_a(&mut self, r8_value: u8) {
         self.regs.a += r8_value;
     }
@@ -99,6 +105,22 @@ impl CPU {
             0x32 => { // LD [HL-], A
                 let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
                 self.mmu.write_byte(addr, self.regs.a);
+                let hl = addr.wrapping_sub(1);
+                self.regs.h = (hl >> 8) as u8;
+                self.regs.l = (hl & 0xFF) as u8;
+            }
+            0x0A => self.ld_a_r16mem(self.regs.b, self.regs.c), // LD A, [BC]
+            0x1A => self.ld_a_r16mem(self.regs.d, self.regs.e), // LD A, [DE]
+            0x2A => { // LD A, [HL+]
+                self.ld_a_r16mem(self.regs.h, self.regs.l);
+                let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                let hl = addr.wrapping_add(1);
+                self.regs.h = (hl >> 8) as u8;
+                self.regs.l = (hl & 0xFF) as u8;
+            }
+            0x3A => { // LD A, [HL-]
+                self.ld_a_r16mem(self.regs.h, self.regs.l);
+                let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
                 let hl = addr.wrapping_sub(1);
                 self.regs.h = (hl >> 8) as u8;
                 self.regs.l = (hl & 0xFF) as u8;
