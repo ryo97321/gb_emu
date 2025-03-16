@@ -125,6 +125,17 @@ impl CPU {
                 self.regs.h = (hl >> 8) as u8;
                 self.regs.l = (hl & 0xFF) as u8;
             }
+            0x08 => { // LD [imm16], SP
+                let low = self.fetch();
+                let high = self.fetch();
+                let addr = ((high as u16) << 8) | (low as u16);
+
+                let sp_low = (self.regs.sp & 0xFF) as u8;
+                let sp_high = (self.regs.sp >> 8) as u8;
+
+                self.mmu.write_byte(addr, sp_low);
+                self.mmu.write_byte(addr+1, sp_high);
+            }
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D

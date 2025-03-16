@@ -11,21 +11,22 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // LD A, [HL-]
-    rom_data[0x0101] = 0x3A;
+    // LD [imm16], SP
+    rom_data[0x0101] = 0x08;
+    rom_data[0x0102] = 0x81;
+    rom_data[0x0103] = 0xFF;
 
     // JP 0x0100
-    rom_data[0x0102] = 0xC3;
-    rom_data[0x0103] = 0x00;
-    rom_data[0x0104] = 0x01;
+    rom_data[0x0104] = 0xC3;
+    rom_data[0x0105] = 0x00;
+    rom_data[0x0106] = 0x01;
 
     // Make MMU & CPU
     let mmu = MMU::new(rom_data);
     let mut cpu = CPU::new(mmu);
 
-    cpu.regs.a = 0x01;
-    cpu.regs.h = 0xFF;
-    cpu.regs.l = 0x81;
+    cpu.regs.sp = 0xAABB;
+
     cpu.mmu.write_byte(0xFF81, 0xC3);
 
     // Exec ROM
@@ -36,7 +37,7 @@ fn main() {
         println!("F: 0x{:02X}", cpu.regs.f);
         println!("0xC000: 0x{:04X}", cpu.mmu.read_byte(0xC000));
         println!("0xFF81: 0x{:04X}", cpu.mmu.read_byte(0xFF81));
-        println!("0xFF83: 0x{:04X}", cpu.mmu.read_byte(0xFF83));
+        println!("0xFF82: 0x{:04X}", cpu.mmu.read_byte(0xFF82));
         println!("0xFFFF: 0x{:02X}", cpu.mmu.read_byte(0xFFFF));
         println!("---");
     }
