@@ -66,6 +66,11 @@ impl CPU {
         self.regs.a = value;
     }
 
+    fn get_inc_r16_value(&mut self, r16_high: u8, r16_low: u8) -> u16 {
+        let value = ((r16_high as u16) << 8) | (r16_low as u16);
+        value.wrapping_add(1)
+    }
+
     fn add_a(&mut self, r8_value: u8) {
         self.regs.a += r8_value;
     }
@@ -135,6 +140,24 @@ impl CPU {
 
                 self.mmu.write_byte(addr, sp_low);
                 self.mmu.write_byte(addr+1, sp_high);
+            }
+            0x03 => { // INC BC
+                let value = self.get_inc_r16_value(self.regs.b, self.regs.c);
+                self.regs.b = (value >> 8) as u8;
+                self.regs.c = (value & 0xFF) as u8;
+            }
+            0x13 => { // INC DE
+                let value = self.get_inc_r16_value(self.regs.d, self.regs.e);
+                self.regs.d = (value >> 8) as u8;
+                self.regs.e = (value & 0xFF) as u8;
+            }
+            0x23 => { // INC HL
+                let value = self.get_inc_r16_value(self.regs.h, self.regs.l);
+                self.regs.h = (value >> 8) as u8;
+                self.regs.l = (value & 0xFF) as u8;
+            }
+            0x33 => { // INC SP
+                self.regs.sp = self.regs.sp.wrapping_add(1);
             }
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
