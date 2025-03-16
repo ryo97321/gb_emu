@@ -30,6 +30,13 @@ impl Registers {
 
 #[derive(PartialEq)]
 enum RegisterType {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
     BC,
     DE,
     HL,
@@ -104,6 +111,46 @@ impl CPU {
 
         self.regs.h = (result >> 8) as u8;
         self.regs.l = (result & 0xFF) as u8;
+    }
+
+    fn inc_r8(&mut self, register_type: RegisterType) {
+        let mut value: u8 = 0;
+        let mut addr: u16 = 0;
+        match register_type {
+            RegisterType::A => value = self.regs.a,
+            RegisterType::B => value = self.regs.b,
+            RegisterType::C => value = self.regs.c,
+            RegisterType::D => value = self.regs.d,
+            RegisterType::E => value = self.regs.e,
+            RegisterType::H => value = self.regs.h,
+            RegisterType::L => value = self.regs.l,
+            RegisterType::HL => {
+                addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                value = self.mmu.read_byte(addr);
+            }
+            _ => {}
+        }
+        let result = value.wrapping_add(1);
+
+        self.regs.f &= 0x10; // C以外クリア
+        if result == 0x00 {
+            self.regs.f |= 0x80; // Z
+        }
+        if (value & 0x0F) == 0x0F {
+            self.regs.f |= 0x20; // H
+        }
+
+        match register_type {
+            RegisterType::A => self.regs.a = result, 
+            RegisterType::B => self.regs.b = result,
+            RegisterType::C => self.regs.c = result,
+            RegisterType::D => self.regs.d = result,
+            RegisterType::E => self.regs.e = result,
+            RegisterType::H => self.regs.h = result,
+            RegisterType::L => self.regs.l = result,
+            RegisterType::HL => self.mmu.write_byte(addr, result),
+            _ => {}
+        }
     }
 
     fn add_a(&mut self, r8_value: u8) {
@@ -209,11 +256,19 @@ impl CPU {
                 self.regs.h = (value >> 8) as u8;
                 self.regs.l = (value & 0xFF) as u8;
             }
+            0x3B => self.regs.sp = self.regs.sp.wrapping_sub(1), // DEC SP
             0x09 => self.add_hl_r16(self.regs.b, self.regs.c, RegisterType::BC), // ADD HL, BC
             0x19 => self.add_hl_r16(self.regs.d, self.regs.e, RegisterType::DE), // ADD HL, DE
             0x29 => self.add_hl_r16(self.regs.h, self.regs.l, RegisterType::HL), // ADD HL, HL
             0x39 => self.add_hl_r16(0, 0, RegisterType::SP),                     // ADD HL, SP
-            0x3B => self.regs.sp = self.regs.sp.wrapping_sub(1), // DEC SP
+            0x3C => self.inc_r8(RegisterType::A),  // INC A
+            0x04 => self.inc_r8(RegisterType::B),  // INC B
+            0x0C => self.inc_r8(RegisterType::C),  // INC C
+            0x14 => self.inc_r8(RegisterType::D),  // INC D
+            0x1C => self.inc_r8(RegisterType::E),  // INC E
+            0x24 => self.inc_r8(RegisterType::H),  // INC H
+            0x2C => self.inc_r8(RegisterType::L),  // INC L
+            0x34 => self.inc_r8(RegisterType::HL), // INC [HL]
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D
