@@ -11,17 +11,17 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // INC BC
-    rom_data[0x0101] = 0x03;
+    // DEC BC
+    rom_data[0x0101] = 0x0B;
 
-    // INC DE
-    rom_data[0x0102] = 0x13;
+    // DEC DE
+    rom_data[0x0102] = 0x1B;
 
-    // INC HL
-    rom_data[0x0103] = 0x23;
+    // DEC HL
+    rom_data[0x0103] = 0x2B;
 
-    // INC SP
-    rom_data[0x0104] = 0x33;
+    // DEC SP
+    rom_data[0x0104] = 0x3B;
 
     // JP 0x0100
     rom_data[0x0105] = 0xC3;

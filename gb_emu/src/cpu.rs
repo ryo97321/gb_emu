@@ -71,6 +71,11 @@ impl CPU {
         value.wrapping_add(1)
     }
 
+    fn get_dec_r16_value(&mut self, r16_high: u8, r16_low: u8) -> u16 {
+        let value = ((r16_high as u16) << 8) | (r16_low as u16);
+        value.wrapping_sub(1)
+    }
+
     fn add_a(&mut self, r8_value: u8) {
         self.regs.a += r8_value;
     }
@@ -159,6 +164,22 @@ impl CPU {
             0x33 => { // INC SP
                 self.regs.sp = self.regs.sp.wrapping_add(1);
             }
+            0x0B => { // DEC BC
+                let value = self.get_dec_r16_value(self.regs.b, self.regs.c);
+                self.regs.b = (value >> 8) as u8;
+                self.regs.c = (value & 0xFF) as u8;
+            }
+            0x1B => { // DEC DE
+                let value = self.get_dec_r16_value(self.regs.d, self.regs.e);
+                self.regs.d = (value >> 8) as u8;
+                self.regs.e = (value & 0xFF) as u8;
+            }
+            0x2B => { // DEC HL
+                let value = self.get_dec_r16_value(self.regs.h, self.regs.l);
+                self.regs.h = (value >> 8) as u8;
+                self.regs.l = (value & 0xFF) as u8;
+            }
+            0x3B => self.regs.sp = self.regs.sp.wrapping_sub(1), // DEC SP
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D
