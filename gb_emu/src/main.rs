@@ -11,17 +11,17 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // DEC BC
-    rom_data[0x0101] = 0x0B;
+    // ADD HL, BC
+    rom_data[0x0101] = 0x09;
 
-    // DEC DE
-    rom_data[0x0102] = 0x1B;
+    // ADD HL, DE
+    rom_data[0x0102] = 0x19;
 
-    // DEC HL
-    rom_data[0x0103] = 0x2B;
+    // ADD HL, HL
+    rom_data[0x0103] = 0x29;
 
-    // DEC SP
-    rom_data[0x0104] = 0x3B;
+    // ADD HL, SP
+    rom_data[0x0104] = 0x39;
 
     // JP 0x0100
     rom_data[0x0105] = 0xC3;
@@ -32,16 +32,16 @@ fn main() {
     let mmu = MMU::new(rom_data);
     let mut cpu = CPU::new(mmu);
 
-    cpu.regs.b = 0xFF;
+    cpu.regs.b = 0x00;
     cpu.regs.c = 0x01;
 
-    cpu.regs.d = 0xEE;
+    cpu.regs.d = 0x00;
     cpu.regs.e = 0x02;
 
-    cpu.regs.h = 0xDD;
+    cpu.regs.h = 0x00;
     cpu.regs.l = 0x03;
 
-    cpu.regs.sp = 0xCC04;
+    cpu.regs.sp = 0x0004;
 
     // Exec ROM
     let n_op = 6; // 命令の数

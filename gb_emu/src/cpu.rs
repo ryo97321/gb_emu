@@ -28,6 +28,14 @@ impl Registers {
     }
 }
 
+#[derive(PartialEq)]
+enum RegisterType {
+    BC,
+    DE,
+    HL,
+    SP,
+}
+
 // LR35902 CPU 定義
 pub struct CPU {
     pub regs: Registers, // レジスタ
@@ -74,6 +82,28 @@ impl CPU {
     fn get_dec_r16_value(&mut self, r16_high: u8, r16_low: u8) -> u16 {
         let value = ((r16_high as u16) << 8) | (r16_low as u16);
         value.wrapping_sub(1)
+    }
+
+    fn add_hl_r16(&mut self, r16_high: u8, r16_low: u8, register_type: RegisterType) {
+        let value: u16;
+        if register_type == RegisterType::SP {
+            value = self.regs.sp;
+        } else {
+            value = ((r16_high as u16) << 8) | (r16_low as u16);
+        }
+        let hl = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+        let result = hl.wrapping_add(value);
+
+        self.regs.f &= 0x80; // Z以外クリア
+        if (hl & 0x0FFF) + (value & 0x0FFF) > 0x0FFF {
+            self.regs.f |= 0x20; // H
+        }
+        if (hl as u32) + (value as u32) > 0xFFFF {
+            self.regs.f |= 0x10; // C
+        }
+
+        self.regs.h = (result >> 8) as u8;
+        self.regs.l = (result & 0xFF) as u8;
     }
 
     fn add_a(&mut self, r8_value: u8) {
@@ -179,6 +209,10 @@ impl CPU {
                 self.regs.h = (value >> 8) as u8;
                 self.regs.l = (value & 0xFF) as u8;
             }
+            0x09 => self.add_hl_r16(self.regs.b, self.regs.c, RegisterType::BC), // ADD HL, BC
+            0x19 => self.add_hl_r16(self.regs.d, self.regs.e, RegisterType::DE), // ADD HL, DE
+            0x29 => self.add_hl_r16(self.regs.h, self.regs.l, RegisterType::HL), // ADD HL, HL
+            0x39 => self.add_hl_r16(0, 0, RegisterType::SP),                     // ADD HL, SP
             0x3B => self.regs.sp = self.regs.sp.wrapping_sub(1), // DEC SP
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
