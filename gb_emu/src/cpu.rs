@@ -226,7 +226,7 @@ impl CPU {
 
         self.regs.f = 0x00;
         if carry == 1 {
-            self.regs.f |= 0x10;
+            self.regs.f |= 0x10; // C
         }
     }
 
@@ -238,7 +238,21 @@ impl CPU {
 
         self.regs.f = 0x00;
         if carry == 1 {
-            self.regs.f |= 0x10;
+            self.regs.f |= 0x10; // C
+        }
+    }
+
+    fn rla(&mut self) {
+        let a = self.regs.a;
+        let carry = (self.regs.f & 0x10) >> 4;
+
+        let a_latest_bit = (self.regs.a & 0x80) >> 7;
+
+        self.regs.a = (a << 1) | carry;
+
+        self.regs.f = 0x00;
+        if a_latest_bit == 1 {
+            self.regs.f |= 0x10; // C
         }
     }
 
@@ -374,6 +388,7 @@ impl CPU {
             }
             0x07 => self.rlca(), // RLCA
             0x0F => self.rrca(), // RRCA
+            0x17 => self.rla(),  // RLA
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
