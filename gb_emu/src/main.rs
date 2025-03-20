@@ -11,8 +11,8 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // RRA
-    rom_data[0x0101] = 0x1F;
+    // DAA
+    rom_data[0x0101] = 0x27;
 
     // JP 0x0100
     rom_data[0x0102] = 0xC3;
@@ -23,7 +23,7 @@ fn main() {
     let mmu = MMU::new(rom_data);
     let mut cpu = CPU::new(mmu);
 
-    cpu.regs.a = 0xFF;
+    cpu.regs.a = 0x0B;
     cpu.regs.f = 0x00;
     cpu.regs.h = 0xFF;
     cpu.regs.l = 0x81;

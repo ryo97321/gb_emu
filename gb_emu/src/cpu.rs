@@ -270,6 +270,35 @@ impl CPU {
         }
     }
 
+    fn daa(&mut self) {
+        let mut correction = 0;
+        let mut carry = false;
+
+        if (self.regs.f & 0x20 != 0) || (self.regs.a & 0x0F) > 9 {
+            correction |= 0x06;
+        }
+
+        if (self.regs.f & 0x10 != 0) || (self.regs.a > 0x99) {
+            correction |= 0x60;
+            carry = true;
+        }
+
+        if (self.regs.f & 0x40) == 0 {
+            self.regs.a = self.regs.a.wrapping_add(correction);
+        } else {
+            self.regs.a = self.regs.a.wrapping_sub(correction);
+        }
+
+        self.regs.f &= 0x10 | 0x40; // Keep C, N
+        if self.regs.a == 0 {
+            self.regs.f |= 0x80; // Z
+        }
+        if carry {
+            self.regs.f |= 0x10; // C
+        }
+        self.regs.f &= !0x20;    // Clear H
+    }
+
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
@@ -404,6 +433,7 @@ impl CPU {
             0x0F => self.rrca(), // RRCA
             0x17 => self.rla(),  // RLA
             0x1F => self.rra(),  // RRA
+            0x27 => self.daa(),  // DAA
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
