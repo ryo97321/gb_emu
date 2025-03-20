@@ -343,6 +343,11 @@ impl CPU {
             0x1E => { let value = self.fetch(); self.regs.e = value; } // LD E, n
             0x26 => { let value = self.fetch(); self.regs.h = value; } // LD H, n
             0x2E => { let value = self.fetch(); self.regs.l = value; } // LD L, n
+            0x36 => { // LD [HL], n
+                let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                let value = self.fetch();
+                self.mmu.write_byte(addr, value);
+            }
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
