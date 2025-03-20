@@ -153,6 +153,47 @@ impl CPU {
         }
     }
 
+    fn dec_r8(&mut self, register_type: RegisterType) {
+        let mut value: u8 = 0;
+        let mut addr: u16 = 0;
+        match register_type {
+            RegisterType::A => value = self.regs.a,
+            RegisterType::B => value = self.regs.b,
+            RegisterType::C => value = self.regs.c,
+            RegisterType::D => value = self.regs.d,
+            RegisterType::E => value = self.regs.e,
+            RegisterType::H => value = self.regs.h,
+            RegisterType::L => value = self.regs.l,
+            RegisterType::HL => {
+                addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                value = self.mmu.read_byte(addr);
+            }
+            _ => {}
+        }
+        let result = value.wrapping_sub(1);
+
+        self.regs.f &= 0x10; // C以外クリア
+        if result == 0x00 {
+            self.regs.f |= 0x80;     // Z
+        }
+        self.regs.f |= 0x40;         // N
+        if (value & 0x10) == 0x10 {
+            self.regs.f |= 0x20;     // H
+        }
+
+        match register_type {
+            RegisterType::A => self.regs.a = result, 
+            RegisterType::B => self.regs.b = result,
+            RegisterType::C => self.regs.c = result,
+            RegisterType::D => self.regs.d = result,
+            RegisterType::E => self.regs.e = result,
+            RegisterType::H => self.regs.h = result,
+            RegisterType::L => self.regs.l = result,
+            RegisterType::HL => self.mmu.write_byte(addr, result),
+            _ => {}
+        }
+    }
+
     fn add_a(&mut self, r8_value: u8) {
         self.regs.a += r8_value;
     }
@@ -269,6 +310,14 @@ impl CPU {
             0x24 => self.inc_r8(RegisterType::H),  // INC H
             0x2C => self.inc_r8(RegisterType::L),  // INC L
             0x34 => self.inc_r8(RegisterType::HL), // INC [HL]
+            0x3D => self.dec_r8(RegisterType::A),  // DEC A
+            0x05 => self.dec_r8(RegisterType::B),  // DEC B
+            0x0D => self.dec_r8(RegisterType::C),  // DEC C
+            0x15 => self.dec_r8(RegisterType::D),  // DEC D
+            0x1D => self.dec_r8(RegisterType::E),  // DEC E
+            0x25 => self.dec_r8(RegisterType::H),  // DEC H
+            0x2D => self.dec_r8(RegisterType::L),  // DEC L
+            0x35 => self.dec_r8(RegisterType::HL), // DEC [HL]
             0x80 => self.add_a(self.regs.b), // ADD A, B
             0x81 => self.add_a(self.regs.c), // ADD A, C
             0x82 => self.add_a(self.regs.d), // ADD A, D
