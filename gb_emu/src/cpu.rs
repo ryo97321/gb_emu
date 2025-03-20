@@ -299,6 +299,27 @@ impl CPU {
         self.regs.f &= !0x20;    // Clear H
     }
 
+    fn cpl(&mut self) {
+        self.regs.a = !self.regs.a;
+        self.regs.f |= 0x60; // Set N, H
+    }
+
+    fn scf(&mut self) {
+        self.regs.f |= 0x10; // Set C
+        self.regs.f &= !0x60; // Reset N, H
+    }
+
+    fn ccf(&mut self) {
+        // Invert C
+        if self.regs.f & 0x10 != 0 {
+            self.regs.f &= !0x10; // Reset C
+        } else {
+            self.regs.f |= 0x10;  // Set C
+        }
+
+        self.regs.f &= !0x60;     // Reset N, H
+    }
+
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
@@ -434,6 +455,9 @@ impl CPU {
             0x17 => self.rla(),  // RLA
             0x1F => self.rra(),  // RRA
             0x27 => self.daa(),  // DAA
+            0x2F => self.cpl(),  // CPL
+            0x37 => self.scf(),  // SCF
+            0x3F => self.ccf(),  // CCF
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
