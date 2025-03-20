@@ -1,4 +1,4 @@
 .git
 gb_emu/pokemon_red.gb
-gb_emu/cpu_instrs.gb
+gb_emu/test_rom/cpu_instrs.gb
 gb_emu/target/
