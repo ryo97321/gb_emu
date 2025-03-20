@@ -11,19 +11,19 @@ fn main() {
     // NOP
     rom_data[0x0100] = 0x00;
 
-    // LD [HL], n
-    rom_data[0x0101] = 0x36;
-    rom_data[0x0102] = 0xEE;
+    // RLCA
+    rom_data[0x0101] = 0x07;
 
     // JP 0x0100
-    rom_data[0x0103] = 0xC3;
-    rom_data[0x0104] = 0x00;
-    rom_data[0x0105] = 0x01;
+    rom_data[0x0102] = 0xC3;
+    rom_data[0x0103] = 0x00;
+    rom_data[0x0104] = 0x01;
 
     // Make MMU & CPU
     let mmu = MMU::new(rom_data);
     let mut cpu = CPU::new(mmu);
 
+    cpu.regs.a = 0xF0;
     cpu.regs.h = 0xFF;
     cpu.regs.l = 0x81;
     cpu.mmu.write_byte(0xFF81, 0x0010);

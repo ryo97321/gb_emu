@@ -218,6 +218,18 @@ impl CPU {
         self.regs.a = result;
     }
 
+    fn rlca(&mut self) {
+        let a = self.regs.a;
+        let carry = (a & 0x80) >> 7;
+
+        self.regs.a = (a << 1) | carry;
+
+        self.regs.f = 0x00;
+        if carry == 1 {
+            self.regs.f |= 0x10;
+        }
+    }
+
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
@@ -348,6 +360,7 @@ impl CPU {
                 let value = self.fetch();
                 self.mmu.write_byte(addr, value);
             }
+            0x07 => self.rlca(), // RLCA
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
