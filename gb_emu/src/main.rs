@@ -8,11 +8,9 @@ fn main() {
     // Initialize Rom DATA
     let mut rom_data = vec![0x00; 0x8000];
 
-    // NOP
-    rom_data[0x0100] = 0x00;
-
-    // CCF
-    rom_data[0x0101] = 0x3F;
+    // JR e8
+    rom_data[0x0100] = 0x18;
+    rom_data[0x0101] = 0x01;
 
     // JP 0x0100
     rom_data[0x0102] = 0xC3;
@@ -24,13 +22,11 @@ fn main() {
     let mut cpu = CPU::new(mmu);
 
     cpu.regs.a = 0x00;
-    cpu.regs.f = 0x60;
-    cpu.regs.h = 0xFF;
-    cpu.regs.l = 0x81;
+    cpu.regs.pc = 0xFFFF;
     cpu.mmu.write_byte(0xFF81, 0x0010);
 
     // Exec ROM
-    let n_op = 3; // 命令の数
+    let n_op = 2; // 命令の数
     for _ in 0..n_op {
         cpu.step();
         println!("A: 0x{:02X}, B: 0x{:02X}, C: 0x{:02X}, D: 0x{:02X}, E: 0x{:02X}, H: 0x{:02X}, L: 0x{:02X}, SP: 0x{:04X}, PC: 0x{:04X}", cpu.regs.a, cpu.regs.b, cpu.regs.c, cpu.regs.d, cpu.regs.e, cpu.regs.h, cpu.regs.l, cpu.regs.sp, cpu.regs.pc);

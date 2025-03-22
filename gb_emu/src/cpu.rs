@@ -320,6 +320,11 @@ impl CPU {
         self.regs.f &= !0x60;     // Reset N, H
     }
 
+    fn jr_e8(&mut self) {
+        let offset = self.fetch() as i8;
+        self.regs.pc = self.regs.pc.wrapping_add(offset as i16 as u16);
+    }
+
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
@@ -450,14 +455,15 @@ impl CPU {
                 let value = self.fetch();
                 self.mmu.write_byte(addr, value);
             }
-            0x07 => self.rlca(), // RLCA
-            0x0F => self.rrca(), // RRCA
-            0x17 => self.rla(),  // RLA
-            0x1F => self.rra(),  // RRA
-            0x27 => self.daa(),  // DAA
-            0x2F => self.cpl(),  // CPL
-            0x37 => self.scf(),  // SCF
-            0x3F => self.ccf(),  // CCF
+            0x07 => self.rlca(),  // RLCA
+            0x0F => self.rrca(),  // RRCA
+            0x17 => self.rla(),   // RLA
+            0x1F => self.rra(),   // RRA
+            0x27 => self.daa(),   // DAA
+            0x2F => self.cpl(),   // CPL
+            0x37 => self.scf(),   // SCF
+            0x3F => self.ccf(),   // CCF
+            0x18 => self.jr_e8(), // JR e8
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
