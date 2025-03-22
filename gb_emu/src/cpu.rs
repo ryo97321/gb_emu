@@ -43,6 +43,14 @@ enum RegisterType {
     SP,
 }
 
+#[derive(Debug, PartialEq)]
+enum ConditionType {
+    NZ,
+    Z,
+    NC,
+    C,
+}
+
 // LR35902 CPU 定義
 pub struct CPU {
     pub regs: Registers, // レジスタ
@@ -325,6 +333,37 @@ impl CPU {
         self.regs.pc = self.regs.pc.wrapping_add(offset as i16 as u16);
     }
 
+    fn jr_cond_e8(&mut self, condition: ConditionType) {
+        let offset = self.fetch() as i8;
+        let mut add_flg = false;
+        match condition {
+            ConditionType::NZ => {
+                if self.regs.f & 0x80 == 0 {
+                    add_flg = true;
+                }
+            },
+            ConditionType::Z => {
+                if self.regs.f & 0x80 != 0 {
+                    add_flg = true;
+                }
+            },
+            ConditionType::NC => {
+                if self.regs.f & 0x10 == 0 {
+                    add_flg = true;
+                }
+            },
+            ConditionType::C => {
+                if self.regs.f & 0x10 != 0 {
+                    add_flg = true;
+                }
+            },
+        }
+
+        if add_flg == true {
+            self.regs.pc = self.regs.pc.wrapping_add(offset as u16);
+        }
+    }
+
     fn execute(&mut self, opcode: u8) {
         match opcode {
             0x00 => { /* Nothing */ }
@@ -464,6 +503,10 @@ impl CPU {
             0x37 => self.scf(),   // SCF
             0x3F => self.ccf(),   // CCF
             0x18 => self.jr_e8(), // JR e8
+            0x20 => self.jr_cond_e8(ConditionType::NZ), // JR NZ, e8
+            0x28 => self.jr_cond_e8(ConditionType::Z),  // JR Z, e8
+            0x30 => self.jr_cond_e8(ConditionType::NC), // JR NC, e8
+            0x38 => self.jr_cond_e8(ConditionType::C),  // JR C, e8
             0xC3 => { // JP nn (絶対ジャンプ)
                 let low = self.fetch();
                 let high = self.fetch();
