@@ -213,7 +213,7 @@ impl CPU {
     }
 
     fn add_a(&mut self, r8_value: u8) {
-        self.regs.a += r8_value;
+        self.regs.a = self.regs.a.wrapping_add(r8_value);
     }
 
     fn adc_a(&mut self, r8_value: u8) {
@@ -232,6 +232,36 @@ impl CPU {
         if ((a as u16) + (r8_value as u16) + (carry as u16)) > 0xFF {
             self.regs.f |= 0x10; // C
         }
+
+        self.regs.a = result;
+    }
+
+    fn sub_a(&mut self, register_type: RegisterType) {
+        let a = self.regs.a;
+        let r8_value: u8;
+        match register_type {
+            RegisterType::A => r8_value = self.regs.a,
+            RegisterType::B => r8_value = self.regs.b,
+            RegisterType::C => r8_value = self.regs.c,
+            RegisterType::D => r8_value = self.regs.d,
+            RegisterType::E => r8_value = self.regs.e,
+            RegisterType::H => r8_value = self.regs.h,
+            RegisterType::L => r8_value = self.regs.l,
+            RegisterType::HL => {
+                let addr = ((self.regs.h as u16) << 8) | (self.regs.l as u16);
+                r8_value = self.mmu.read_byte(addr);
+            },
+            _ => r8_value = 0,
+        }
+
+        let result = a.wrapping_add(r8_value);
+
+        // TODO FIX
+        self.regs.f = 0x00;
+        if result == 0 {
+            self.regs.f |= 0x80; // Z
+        }
+        self.regs.f |= 0x40;     // N
 
         self.regs.a = result;
     }
@@ -558,6 +588,14 @@ impl CPU {
             0x8B => self.adc_a(self.regs.e), // ADC A, E
             0x8C => self.adc_a(self.regs.h), // ADC A, H
             0x8D => self.adc_a(self.regs.l), // ADC A, L
+            0x90 => self.sub_a(RegisterType::B), // SUB A, B
+            0x91 => self.sub_a(RegisterType::C), // SUB A, C
+            0x92 => self.sub_a(RegisterType::D), // SUB A, D
+            0x93 => self.sub_a(RegisterType::E), // SUB A, E
+            0x94 => self.sub_a(RegisterType::H), // SUB A, H
+            0x95 => self.sub_a(RegisterType::L), // SUB A, L
+            0x96 => self.sub_a(RegisterType::HL), // SUB A, [HL]
+            0x97 => self.sub_a(RegisterType::A), // SUB A, A
             0x3E => {
                 let value = self.fetch();
                 self.regs.a = value;
